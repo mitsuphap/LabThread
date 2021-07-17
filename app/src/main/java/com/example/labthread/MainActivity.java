@@ -3,6 +3,7 @@ package com.example.labthread;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -21,6 +22,8 @@ public class MainActivity extends AppCompatActivity {
     HandlerThread backgroundHandlerThread;
     Handler backgroundHandler;
     Handler mainHandler;
+
+    SampleAsyncTask sampleAsyncTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,7 +104,8 @@ public class MainActivity extends AppCompatActivity {
         handler.sendEmptyMessageDelayed(0, 1000);
          */
 
-        //Thread Method 3 : HandlerThread
+        //Thread Method 4 : HandlerThread
+        /*
         backgroundHandlerThread = new HandlerThread("BackgroundHandlerThread");
         backgroundHandlerThread.start();
 
@@ -132,7 +136,11 @@ public class MainActivity extends AppCompatActivity {
         Message msgBack = new Message();
         msgBack.arg1 = 0; //Start count at 0
         backgroundHandler.sendMessageDelayed(msgBack, 1000);
+        */
 
+        // Thread Method 5: AsyncTask
+        sampleAsyncTask = new SampleAsyncTask();
+        sampleAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, 0 , 100);
     }
 
     @Override
@@ -140,6 +148,41 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
 
 //        thread.interrupt();
-        backgroundHandlerThread.quit();
+//        backgroundHandlerThread.quit();
+        sampleAsyncTask.cancel(true);
+    }
+
+    class SampleAsyncTask extends AsyncTask<Integer, Float, Boolean>{
+
+        @Override
+        protected Boolean doInBackground(Integer... integers) {
+            //Run in Background Thread
+            int start = integers[0]; // 0
+            int end = integers[1];   // 100
+            for (int i = start; i < end; i++){
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    return false;
+                }
+                publishProgress(i + 0.0f);
+            }
+            return true;
+        }
+
+        @Override
+        protected void onProgressUpdate(Float... values) {
+            //Run in Main Thread
+            super.onProgressUpdate(values);
+            float progress = values[0];
+            tvCounter.setText(progress + "%");
+        }
+
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            //Run in Main Thread
+            super.onPostExecute(aBoolean);
+            // work with aBoolean
+        }
     }
 }
