@@ -1,8 +1,13 @@
 package com.example.labthread;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.AsyncTaskLoader;
+import androidx.loader.content.Loader;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,7 +16,11 @@ import android.os.Looper;
 import android.os.Message;
 import android.widget.TextView;
 
-public class MainActivity extends AppCompatActivity {
+
+
+import java.util.Objects;
+
+public class MainActivity<D> extends AppCompatActivity implements LoaderManager.LoaderCallbacks<D> {
 
     int counter;
     TextView tvCounter;
@@ -139,8 +148,12 @@ public class MainActivity extends AppCompatActivity {
         */
 
         // Thread Method 5: AsyncTask
-        sampleAsyncTask = new SampleAsyncTask();
-        sampleAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, 0 , 100);
+//        sampleAsyncTask = new SampleAsyncTask();
+//        sampleAsyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, 0 , 100);
+
+        // Thread Method 5: AsyncTaskLoader
+        getSupportLoaderManager().initLoader(1, null, this);
+
     }
 
     @Override
@@ -149,7 +162,60 @@ public class MainActivity extends AppCompatActivity {
 
 //        thread.interrupt();
 //        backgroundHandlerThread.quit();
-        sampleAsyncTask.cancel(true);
+//        sampleAsyncTask.cancel(true);
+    }
+
+    @NonNull
+
+    @Override
+    public Loader<D> onCreateLoader(int id, @Nullable Bundle args) {
+        if (id == 1) {
+            return (Loader<D>) new AdderAsyncTaskLoader(MainActivity.this, 5, 11);
+        }
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(@NonNull Loader<D> loader, D data) {
+        if (loader.getId() == 1) {
+            Integer result = (Integer) data;
+            tvCounter.setText(result + "");
+        }
+    }
+
+    @Override
+    public void onLoaderReset(@NonNull Loader<D> loader) {
+
+    }
+
+
+    static class AdderAsyncTaskLoader extends AsyncTaskLoader<Object> {
+
+        int a,b;
+
+        public AdderAsyncTaskLoader(Context context, int a, int b) {
+            super(context);
+            this.a = a;
+            this.b = b;
+        }
+
+        @Override
+        protected void onStartLoading() {
+            super.onStartLoading();
+            forceLoad();
+        }
+
+        @Override
+        public Integer loadInBackground() {
+            //Run in Background Thread
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return a + b;
+        }
+
     }
 
     class SampleAsyncTask extends AsyncTask<Integer, Float, Boolean>{
@@ -159,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
             //Run in Background Thread
             int start = integers[0]; // 0
             int end = integers[1];   // 100
-            for (int i = start; i < end; i++){
+            for (int i = start; i <= end; i++){
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
