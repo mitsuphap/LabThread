@@ -14,6 +14,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Log;
 import android.widget.TextView;
 
 
@@ -177,6 +178,7 @@ public class MainActivity<D> extends AppCompatActivity implements LoaderManager.
 
     @Override
     public void onLoadFinished(@NonNull Loader<D> loader, D data) {
+        Log.d("LLLL", "onLoadFinished");
         if (loader.getId() == 1) {
             Integer result = (Integer) data;
             tvCounter.setText(result + "");
@@ -202,11 +204,13 @@ public class MainActivity<D> extends AppCompatActivity implements LoaderManager.
         @Override
         protected void onStartLoading() {
             super.onStartLoading();
+            Log.d("LLLL", "onStartLoading");
             forceLoad();
         }
 
         @Override
         public Integer loadInBackground() {
+            Log.d("LLLL", "loadInBackground");
             //Run in Background Thread
             try {
                 Thread.sleep(5000);
@@ -216,6 +220,11 @@ public class MainActivity<D> extends AppCompatActivity implements LoaderManager.
             return a + b;
         }
 
+        @Override
+        protected void onStopLoading() {
+            super.onStopLoading();
+            Log.d("LLLL", "onStopLoading");
+        }
     }
 
     class SampleAsyncTask extends AsyncTask<Integer, Float, Boolean>{
